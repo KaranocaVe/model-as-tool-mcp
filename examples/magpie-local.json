@@ -1,0 +1,78 @@
+{
+  "providers": {
+    "magpie-local": {
+      "type": "openai",
+      "baseUrl": "http://127.0.0.1:8000/v1"
+    }
+  },
+  "models": {
+    "magpie/local": {
+      "provider": "magpie-local",
+      "model": "magpie-model",
+      "capabilities": {
+        "roles": [
+          "system",
+          "user",
+          "assistant"
+        ],
+        "input": [
+          "text"
+        ],
+        "output": [
+          "text"
+        ],
+        "streaming": true,
+        "json": true,
+        "jsonSchema": false,
+        "options": [
+          "temperature",
+          "topP",
+          "maxTokens",
+          "stop"
+        ]
+      }
+    }
+  },
+  "routes": {},
+  "presets": {},
+  "policy": {
+    "concurrency": 1,
+    "maxQueue": 16,
+    "timeoutMs": 60000,
+    "requestsPerMinute": 60,
+    "retry": {
+      "maxAttempts": 1,
+      "baseDelayMs": 250,
+      "maxDelayMs": 2000
+    },
+    "circuit": {
+      "failures": 5,
+      "resetMs": 30000
+    },
+    "cache": {
+      "enabled": false,
+      "ttlMs": 30000,
+      "maxEntries": 100
+    },
+    "deduplicate": false,
+    "records": {
+      "enabled": false,
+      "includeContent": false,
+      "maxEntries": 100
+    },
+    "sessions": {
+      "enabled": false,
+      "ttlMs": 3600000,
+      "maxSessions": 10,
+      "maxMessages": 50
+    }
+  },
+  "http": {
+    "host": "127.0.0.1",
+    "port": 8787,
+    "path": "/mcp",
+    "allowedOrigins": [],
+    "tenants": {},
+    "maxBodyBytes": 1048576
+  }
+}

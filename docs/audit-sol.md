@@ -1,0 +1,7 @@
+# Independent Sol audit
+
+This audit inspected the design baseline, configuration and validation, engine and scheduling, provider adapters, MCP transports, CLI, and npm package contents. The audit used mock providers and local HTTP endpoints; it did not send requests to external model providers.
+
+During the review, fixes were made for loopback tenant authentication, cross-origin credential forwarding on redirects, streaming capability checks and interruption handling, least-loaded reservations, inherited registry names, duplicate MCP text, strict message input, alias authorization, batch error serialization, bounded provider response parsing, and packaged documentation. Related tests are in `test/audit-sol.test.ts` and the other audit test files. The CLI `--help` command was also exercised through a temporary symbolic link, and `npm pack --dry-run` was inspected.
+
+The review also checked that capability detection requires both probe and inference scopes and the model allowlist, and does not mutate the configured capability declaration. A cancelled half-open circuit trial now releases the trial state, allowing another request to probe recovery. After these fixes and the Zod upgrade, `npm run check` passed and `npm test` passed 84 tests, with one opt-in live test skipped. The independent audit test file contributes 11 tests. These checks cover the cases exercised; they do not establish behavior against every real provider, client, or network deployment.

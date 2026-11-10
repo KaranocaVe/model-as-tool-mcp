@@ -1,0 +1,115 @@
+{
+  "providers": {
+    "magpie-local": {
+      "type": "openai",
+      "baseUrl": "http://127.0.0.1:8000/v1",
+      "apiKeyEnv": "MAGPIE_API_KEY"
+    },
+    "openai-main": {
+      "type": "openai",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    },
+    "anthropic-main": {
+      "type": "anthropic",
+      "baseUrl": "https://api.anthropic.com/v1",
+      "apiKeyEnv": "ANTHROPIC_API_KEY"
+    },
+    "gemini-main": {
+      "type": "gemini",
+      "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+      "apiKeyEnv": "GEMINI_API_KEY"
+    }
+  },
+  "models": {
+    "magpie/local": {
+      "provider": "magpie-local",
+      "model": "magpie-model",
+      "aliases": ["local-writer"],
+      "capabilities": {
+        "roles": ["system", "user", "assistant"],
+        "input": ["text"],
+        "output": ["text"],
+        "streaming": true,
+        "json": true,
+        "jsonSchema": false,
+        "options": ["temperature", "topP", "maxTokens", "stop"]
+      }
+    },
+    "openai/gpt-4o-mini": {
+      "provider": "openai-main",
+      "model": "gpt-4o-mini",
+      "capabilities": {
+        "roles": ["system", "user", "assistant"],
+        "input": ["text", "image"],
+        "output": ["text"],
+        "streaming": true,
+        "json": true,
+        "jsonSchema": true,
+        "options": ["temperature", "topP", "maxTokens", "stop", "seed"]
+      }
+    },
+    "anthropic/claude": {
+      "provider": "anthropic-main",
+      "model": "claude-3-5-sonnet-latest",
+      "capabilities": {
+        "roles": ["system", "user", "assistant"],
+        "input": ["text", "image"],
+        "output": ["text"],
+        "streaming": true,
+        "json": false,
+        "jsonSchema": false,
+        "options": ["temperature", "topP", "maxTokens", "stop"]
+      }
+    },
+    "gemini/gemini-2.0-flash": {
+      "provider": "gemini-main",
+      "model": "gemini-2.0-flash",
+      "capabilities": {
+        "roles": ["system", "user", "assistant"],
+        "input": ["text", "image", "audio"],
+        "output": ["text"],
+        "streaming": true,
+        "json": true,
+        "jsonSchema": true,
+        "options": ["temperature", "topP", "maxTokens", "stop"]
+      }
+    }
+  },
+  "routes": {
+    "general": {
+      "models": ["magpie/local", "openai/gpt-4o-mini"],
+      "strategy": "round_robin",
+      "fallback": true
+    }
+  },
+  "presets": {
+    "plain-rewrite": {
+      "model": "magpie/local",
+      "messages": [
+        { "role": "system", "content": "Rewrite the supplied text clearly and concisely." }
+      ],
+      "options": { "temperature": 0.2, "maxTokens": 500 }
+    }
+  },
+  "policy": {
+    "concurrency": 4,
+    "maxQueue": 64,
+    "timeoutMs": 60000,
+    "requestsPerMinute": 120,
+    "retry": { "maxAttempts": 2, "baseDelayMs": 250, "maxDelayMs": 4000 },
+    "circuit": { "failures": 5, "resetMs": 30000 },
+    "cache": { "enabled": false, "ttlMs": 30000, "maxEntries": 1000 },
+    "deduplicate": false,
+    "records": { "enabled": false, "includeContent": false, "maxEntries": 1000 },
+    "sessions": { "enabled": false, "ttlMs": 3600000, "maxSessions": 1000, "maxMessages": 100 }
+  },
+  "http": {
+    "host": "127.0.0.1",
+    "port": 8787,
+    "path": "/mcp",
+    "allowedOrigins": ["http://localhost:3000"],
+    "tenants": {},
+    "maxBodyBytes": 1048576
+  }
+}

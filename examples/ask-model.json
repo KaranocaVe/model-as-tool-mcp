@@ -1,0 +1,7 @@
+{
+  "model": "magpie/local",
+  "messages": [
+    { "role": "user", "content": "Rewrite this sentence in plain English." }
+  ],
+  "options": { "temperature": 0.2, "maxTokens": 200 }
+}
