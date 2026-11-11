@@ -17,10 +17,10 @@ function fakeEngine() {
     ask: async () => response,
     detectCapabilities: async (model: string, aspects: string[]) => ({ model, requested: aspects, results: aspects.map(aspect => ({ aspect, status: 'supported', rationaleCode: 'OBSERVED_SUCCESS', details: 'ok' })) }),
     listModels: () => [{ id: 'demo', ...config.models.demo }],
-    batch: async () => [response], probe: async () => ({ available: true }),
+    batch: async () => [{ status: 'fulfilled' as const, value: response }], probe: async () => ({ available: true }),
     createSession: () => ({ id: 's', model: 'demo', messages: [], expiresAt: Date.now() + 1000 }),
     getSession: () => ({ id: 's', model: 'demo', messages: [], expiresAt: Date.now() + 1000 }), deleteSession: () => ({ deleted: true }),
-    stats: () => ({ requests: 0 }), records: () => []
+    stats: () => ({ requests: 0, succeeded: 0, failed: 0, cacheHits: 0, deduplicated: 0, inputTokens: 0, outputTokens: 0, providerCalls: 0, providerLatencyMs: 0, costs: {} }), records: () => []
   };
 }
 
@@ -32,9 +32,15 @@ describe('MCP server', () => {
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
     const tools = await client.listTools();
     expect(tools.tools.map(tool => tool.name)).toEqual(expect.arrayContaining(['ask_model', 'list_models', 'batch_ask', 'probe_model', 'detect_capabilities', 'create_session', 'get_session', 'delete_session', 'stats', 'records']));
+    const askTool = tools.tools.find(tool => tool.name === 'ask_model');
+    const listModelsTool = tools.tools.find(tool => tool.name === 'list_models');
+    expect(tools.tools.every(tool => tool.outputSchema)).toBe(true);
+    expect(askTool?.outputSchema).toMatchObject({ type: 'object', required: expect.arrayContaining(['model', 'provider', 'text']) });
+    expect(listModelsTool?.outputSchema).toMatchObject({ type: 'object', required: ['models'] });
     const result = await client.callTool({ name: 'ask_model', arguments: { model: 'demo', messages: [{ role: 'user', content: 'hi' }] } });
     expect(result.isError).not.toBe(true);
     expect(result.content).toEqual(expect.arrayContaining([{ type: 'text', text: 'hello' }]));
+    expect(result.structuredContent).toMatchObject({ model: 'demo', provider: 'p', text: 'hello' });
     await client.close(); await server.close();
   });
 
@@ -52,6 +58,58 @@ describe('MCP server', () => {
     await client.close(); await server.close();
   });
 
+  it('validates structured output for every operational tool', async () => {
+    const server = createMcpServer({ config, engine: fakeEngine() as never });
+    const client = new Client({ name: 'schema-client', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+    const calls = [
+      ['list_models', {}],
+      ['batch_ask', { requests: [{ model: 'demo', messages: [{ role: 'user', content: 'hi' }] }] }],
+      ['probe_model', { model: 'demo' }],
+      ['detect_capabilities', { model: 'demo', aspects: ['json'] }],
+      ['create_session', { model: 'demo' }],
+      ['get_session', { id: 's' }],
+      ['delete_session', { id: 's' }],
+      ['stats', {}],
+      ['records', {}]
+    ] as const;
+    for (const [name, args] of calls) {
+      const result = await client.callTool({ name, arguments: args });
+      expect(result.isError, `${name} returned an MCP error`).not.toBe(true);
+      expect(result.structuredContent, `${name} omitted structuredContent`).toBeDefined();
+    }
+    await client.close(); await server.close();
+  });
+
+  it('validates multimodal and batch response variants against output schemas', async () => {
+    const engine = fakeEngine();
+    engine.ask = async () => ({
+      model: 'demo', provider: 'p', text: 'hello',
+      content: [
+        { type: 'text', text: 'hello' },
+        { type: 'image', data: 'aGVsbG8=', mimeType: 'image/png' },
+        { type: 'image', url: 'https://example.test/image.png', mimeType: 'image/png' },
+        { type: 'audio', data: 'AQID', mimeType: 'audio/wav' }
+      ]
+    });
+    engine.batch = async () => [
+      { status: 'fulfilled', value: { model: 'demo', provider: 'p', text: 'hello', content: [{ type: 'image', data: 'aGVsbG8=', mimeType: 'image/png' }] } },
+      { status: 'rejected', reason: new Error('provider detail') }
+    ];
+    const server = createMcpServer({ config, engine: engine as never });
+    const client = new Client({ name: 'multimodal-schema-client', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+    const ask = await client.callTool({ name: 'ask_model', arguments: { model: 'demo' } });
+    expect(ask.isError).not.toBe(true);
+    expect(ask.structuredContent).toMatchObject({ content: expect.arrayContaining([{ type: 'image', url: 'https://example.test/image.png', mimeType: 'image/png' }, { type: 'audio', data: 'AQID', mimeType: 'audio/wav' }]) });
+    const batch = await client.callTool({ name: 'batch_ask', arguments: { requests: [{ model: 'demo' }, { model: 'demo' }] } });
+    expect(batch.isError).not.toBe(true);
+    expect(batch.structuredContent).toMatchObject({ responses: [{ status: 'fulfilled' }, { status: 'rejected', reason: { code: 'internal_error' } }] });
+    await client.close(); await server.close();
+  });
+
   it('requires both probe and ask scopes for capability detection', async () => {
     const engine = fakeEngine();
     const server = createMcpServer({ config, engine: engine as never, principal: { tenant: 't', models: ['demo'], scopes: ['models:probe'] } });
@@ -60,6 +118,8 @@ describe('MCP server', () => {
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
     const denied = await client.callTool({ name: 'detect_capabilities', arguments: { model: 'demo', aspects: ['json'] } });
     expect(denied.isError).toBe(true);
+    expect(denied.structuredContent).toBeUndefined();
+    expect(denied.content).toEqual([{ type: 'text', text: expect.any(String) }]);
     await client.close(); await server.close();
 
     const allowedServer = createMcpServer({ config, engine: fakeEngine() as never, principal: { tenant: 't', models: ['demo'], scopes: ['models:probe', 'models:ask'] } });

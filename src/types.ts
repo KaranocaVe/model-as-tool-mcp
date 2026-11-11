@@ -2,7 +2,8 @@ export type ProviderKind = 'openai' | 'anthropic' | 'gemini';
 export type Role = 'system' | 'user' | 'assistant';
 export type ContentPart =
   | { type: 'text'; text: string }
-  | { type: 'image'; data?: string; url?: string; mimeType: string }
+  | { type: 'image'; data: string; url?: never; mimeType: string }
+  | { type: 'image'; data?: never; url: string; mimeType: string }
   | { type: 'audio'; data: string; mimeType: string };
 export interface Message { role: Role; content: string | ContentPart[] }
 export interface GenerationOptions {

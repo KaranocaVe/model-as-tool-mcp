@@ -66,6 +66,14 @@ A successful response has the normalized shape:
 
 Fields are omitted when a provider does not supply the corresponding value. The service does not estimate token counts, cost, or finish reasons. A stream delivers events through the MCP transport and finishes with the same normalized metadata when supported by the transport.
 
+For MCP clients, the normalized value is available as `structuredContent` under the declared `outputSchema`. A compatibility `content` rendering is also returned for clients that still read content blocks. A direct host call can therefore see the same text in both representations; a PTC program should read `structuredContent`, pass or write the needed fields, and return a compact result instead of forwarding the full response.
+
+### Programmatic tool calling
+
+Use PTC only when the workflow is bounded and code can handle a substantial intermediate response predictably, such as extracting selected fields, aggregating several outputs, or passing generated text to a file or another tool. Keep the complete response inside that program and return only the data needed by the host, such as a path, status, or short summary. This avoids sending the full intermediate text back for the host to repeat.
+
+Use a direct `ask_model` call for ordinary questions, short copy, concise adviser responses, interactive discussion, or whenever the host must read and evaluate the complete answer. `outputSchema` exposes the response shape to compatible clients; it does not suppress fields from the host transcript. PTC changes where the result is processed, not what the MCP server stores or conceals.
+
 ## `list_models`
 
 Returns configured public model IDs, aliases, provider information, and declared capabilities. It does not enumerate a provider's entire catalog. Use it before selecting a model when the host does not already know the configuration.

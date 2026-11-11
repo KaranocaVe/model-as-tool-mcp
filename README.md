@@ -134,6 +134,12 @@ A minimal call is explicit and stateless:
 
 `ask_model` also accepts an alias, preset, route, explicit fallback list, timeout, retry override, cache and deduplication flags, an optional session ID, and streaming. Structured output, multimodal content, provider-specific options, and the other optional features are described in [docs/api.md](docs/api.md). `list_models` returns the configured public IDs, provider kind, aliases, and declared capabilities so a host can choose deliberately.
 
+### Programmatic tool calling
+
+Use PTC selectively. It fits a bounded workflow where a model returns substantial intermediate output and code can predictably filter, aggregate, transform, or pass it to another tool while returning only a small result. For example, when drafting a document that will be written by a later tool, keep the full `ask_model` result inside the PTC program and return the artifact reference and a short status. Do not use PTC by default for ordinary questions, short copy, concise adviser responses, interactive discussion, or work that requires the host model to inspect and judge the full response. Call `ask_model` directly when its answer is itself the result the host needs to read.
+
+`ask_model` and the other tools declare MCP `outputSchema` contracts so PTC can consume their structured results. The schema does not hide response fields: the host still receives whatever the PTC program returns. Avoid returning the full model text unless the host needs it.
+
 The service forwards only the supplied messages. It does not add a system prompt, host conversation, files, tools, or credentials. Models are called without tool execution.
 
 ## Design boundaries
