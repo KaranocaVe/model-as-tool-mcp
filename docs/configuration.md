@@ -35,10 +35,10 @@ Keep secrets out of this file. `apiKeyEnv` and tenant `apiKeyEnv` name environme
 ```json
 {
   "providers": {
-    "magpie-local": {
+    "local-gateway": {
       "type": "openai",
       "baseUrl": "http://127.0.0.1:8000/v1",
-      "apiKeyEnv": "MAGPIE_API_KEY",
+      "apiKeyEnv": "GATEWAY_API_KEY",
       "headers": { "X-Client": "model-as-tool-mcp" }
     }
   }
@@ -46,7 +46,7 @@ Keep secrets out of this file. `apiKeyEnv` and tenant `apiKeyEnv` name environme
 ```
 
 - `type` is `openai`, `anthropic`, or `gemini`.
-- `baseUrl` is the provider endpoint root. OpenAI-compatible services, including local Magpie, Ollama, and vLLM gateways, use `openai` when they expose the compatible request shape.
+- `baseUrl` is the provider endpoint root. OpenAI-compatible services, including Ollama and vLLM, use `openai` when they expose the compatible request shape.
 - `apiKeyEnv` is optional for local or unauthenticated endpoints. If set, the named environment variable must be available when a request needs credentials.
 - `headers` adds fixed non-secret headers. Do not put an API key directly in a header value committed to source control.
 
@@ -57,9 +57,9 @@ Each model has a stable public ID and points to one provider entry:
 ```json
 {
   "models": {
-    "magpie/local": {
-      "provider": "magpie-local",
-      "model": "magpie-model",
+    "local/model": {
+      "provider": "local-gateway",
+      "model": "your-model-name",
       "aliases": ["local-writer"],
       "capabilities": {
         "roles": ["system", "user", "assistant"],
@@ -91,7 +91,7 @@ Routes group public model IDs:
 {
   "routes": {
     "writers": {
-      "models": ["magpie/local", "openai/gpt-4o-mini"],
+      "models": ["local/model", "openai/gpt-4o-mini"],
       "strategy": "round_robin",
       "fallback": true
     }
@@ -107,7 +107,7 @@ Presets hold reusable defaults:
 {
   "presets": {
     "plain-rewrite": {
-      "model": "magpie/local",
+      "model": "local/model",
       "messages": [
         { "role": "system", "content": "Rewrite concisely and preserve meaning." }
       ],
@@ -163,7 +163,7 @@ The defaults above are bounded except for `requestsPerMinute: 0`, which disables
     "tenants": {
       "team-a": {
         "apiKeyEnv": "MODEL_TOOL_TEAM_A_KEY",
-        "models": ["magpie/local"],
+        "models": ["local/model"],
         "scopes": ["models:read", "models:ask"]
       }
     },

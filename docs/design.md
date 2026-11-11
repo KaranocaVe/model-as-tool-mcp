@@ -23,7 +23,7 @@ The evidence column points to the current implementation and tests. Entries mark
 | OpenAI-compatible provider | `ProviderConfig.type = openai` | Enabled when configured | `src/providers/`; `test/providers.test.ts`; `test/audit-providers.test.ts` |
 | Anthropic provider | `ProviderConfig.type = anthropic` | Enabled when configured | `src/providers/`; `test/providers.test.ts`; `test/audit-providers.test.ts` |
 | Gemini provider | `ProviderConfig.type = gemini` | Enabled when configured | `src/providers/`; `test/providers.test.ts`; `test/audit-providers.test.ts` |
-| Local Magpie through OpenAI-compatible API | `type: openai`, local `baseUrl` | Opt-in provider entry | `examples/magpie-local.json`; `docs/live-testing.md`; `test/live.test.ts` (opt-in) |
+| Local OpenAI-compatible gateway | `type: openai`, local `baseUrl` | Opt-in provider entry | `examples/local-gateway.json`; `docs/live-testing.md`; `test/live.test.ts` (opt-in) |
 | Explicit text messages and roles | `Message`, `Role` | Enabled | `src/config.ts`; `test/audit-config.test.ts` |
 | Streaming and cancellation | `AskRequest.stream`, `AdapterContext.signal/onEvent` | Disabled unless requested and declared | `src/scheduler.ts`; `test/engine.test.ts`; `test/audit-sol.test.ts` |
 | Structured JSON output | `GenerationOptions.responseFormat` | Disabled unless requested and declared | `src/engine.ts`; `test/engine.test.ts` |

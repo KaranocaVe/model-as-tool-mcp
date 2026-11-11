@@ -58,7 +58,7 @@ For an MCP client that launches local processes, point the command at the built 
         "stdio"
       ],
       "env": {
-        "MAGPIE_API_KEY": "replace-me"
+        "GATEWAY_API_KEY": "replace-me"
       }
     }
   }
@@ -86,21 +86,21 @@ The parser applies documented defaults and rejects unknown or malformed values. 
 
 ## Provider examples
 
-The examples include all three adapter kinds. `examples/config.json` includes a local Magpie OpenAI-compatible endpoint alongside OpenAI, Anthropic, and Gemini entries. The local endpoint uses the same OpenAI-compatible wire contract as other compatible gateways:
+The examples include all three adapter kinds. `examples/config.json` includes a local OpenAI-compatible endpoint alongside OpenAI, Anthropic, and Gemini entries:
 
 ```json
 {
   "providers": {
-    "magpie-local": {
+    "local-gateway": {
       "type": "openai",
       "baseUrl": "http://127.0.0.1:8000/v1",
-      "apiKeyEnv": "MAGPIE_API_KEY"
+      "apiKeyEnv": "GATEWAY_API_KEY"
     }
   },
   "models": {
-    "magpie/local": {
-      "provider": "magpie-local",
-      "model": "magpie-model",
+    "local/model": {
+      "provider": "local-gateway",
+      "model": "your-model-name",
       "capabilities": {
         "roles": ["system", "user", "assistant"],
         "input": ["text"],
@@ -115,7 +115,7 @@ The examples include all three adapter kinds. `examples/config.json` includes a 
 }
 ```
 
-The example uses port `8000` as a generic local gateway. The opt-in desktop Magpie integration in [docs/live-testing.md](docs/live-testing.md) uses its observed loopback port and can be overridden with `MODEL_AS_TOOL_LIVE_BASE_URL`.
+Replace the endpoint, model name, and credentials with those of your provider. See [docs/live-testing.md](docs/live-testing.md) for an optional live integration test.
 
 The adapter kind determines the wire protocol; the model declaration determines which features this service will accept for that model. A provider's public feature set does not imply that every configured model supports every option. See [docs/providers.md](docs/providers.md) for the differences and capability declaration rules.
 
@@ -125,7 +125,7 @@ A minimal call is explicit and stateless:
 
 ```json
 {
-  "model": "magpie/local",
+  "model": "local/model",
   "messages": [
     { "role": "user", "content": "Rewrite this sentence in plain English." }
   ]

@@ -1,9 +1,9 @@
 {
   "providers": {
-    "magpie-local": {
+    "local-gateway": {
       "type": "openai",
       "baseUrl": "http://127.0.0.1:8000/v1",
-      "apiKeyEnv": "MAGPIE_API_KEY"
+      "apiKeyEnv": "GATEWAY_API_KEY"
     },
     "openai-main": {
       "type": "openai",
@@ -22,9 +22,9 @@
     }
   },
   "models": {
-    "magpie/local": {
-      "provider": "magpie-local",
-      "model": "magpie-model",
+    "local/model": {
+      "provider": "local-gateway",
+      "model": "your-model-name",
       "aliases": ["local-writer"],
       "capabilities": {
         "roles": ["system", "user", "assistant"],
@@ -78,14 +78,14 @@
   },
   "routes": {
     "general": {
-      "models": ["magpie/local", "openai/gpt-4o-mini"],
+      "models": ["local/model", "openai/gpt-4o-mini"],
       "strategy": "round_robin",
       "fallback": true
     }
   },
   "presets": {
     "plain-rewrite": {
-      "model": "magpie/local",
+      "model": "local/model",
       "messages": [
         { "role": "system", "content": "Rewrite the supplied text clearly and concisely." }
       ],

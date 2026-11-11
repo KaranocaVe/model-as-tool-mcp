@@ -4,13 +4,13 @@ Adapters translate the normalized request into a provider protocol and normalize
 
 ## OpenAI-compatible
 
-Use `type: "openai"` for OpenAI and compatible HTTP APIs. The adapter is suitable for gateways such as local Magpie, Ollama, and vLLM when their endpoint implements the expected chat-completions style contract. Set `baseUrl` to the API root and `apiKeyEnv` only when the endpoint requires a key.
+Use `type: "openai"` for OpenAI and compatible HTTP APIs. The adapter is suitable for gateways such as Ollama and vLLM when their endpoint implements the expected chat-completions style contract. Set `baseUrl` to the API root and `apiKeyEnv` only when the endpoint requires a key.
 
 ```json
 {
   "type": "openai",
   "baseUrl": "http://127.0.0.1:8000/v1",
-  "apiKeyEnv": "MAGPIE_API_KEY"
+  "apiKeyEnv": "GATEWAY_API_KEY"
 }
 ```
 
@@ -55,7 +55,7 @@ Use environment variables for keys, for example:
 export OPENAI_API_KEY='…'
 export ANTHROPIC_API_KEY='…'
 export GEMINI_API_KEY='…'
-export MAGPIE_API_KEY='…'
+export GATEWAY_API_KEY='…'
 ```
 
 These names are examples only; configuration chooses the actual variable name. Keep local endpoints bound to loopback unless a protected network service is intended. Never commit credentials or include them in an MCP request.

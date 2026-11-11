@@ -1,14 +1,14 @@
 {
   "providers": {
-    "magpie-local": {
+    "local-gateway": {
       "type": "openai",
       "baseUrl": "http://127.0.0.1:8000/v1"
     }
   },
   "models": {
-    "magpie/local": {
-      "provider": "magpie-local",
-      "model": "magpie-model"
+    "local/model": {
+      "provider": "local-gateway",
+      "model": "your-model-name"
     }
   },
   "policy": {},
@@ -19,7 +19,7 @@
     "tenants": {
       "writer": {
         "apiKeyEnv": "MODEL_TOOL_WRITER_KEY",
-        "models": ["magpie/local"],
+        "models": ["local/model"],
         "scopes": ["models:read", "models:ask"]
       }
     }

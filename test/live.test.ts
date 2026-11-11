@@ -7,14 +7,15 @@ import type { AppConfig, ProviderConfig } from '../src/types.js';
 
 /**
  * Live tests are deliberately opt in. They make one small, fixed inference
- * request against the caller's local Magpie (or another OpenAI compatible
- * endpoint) and never print credentials or model output to the test log.
+ * request against a configured OpenAI-compatible endpoint and never print
+ * credentials or model output to the test log.
  */
 const enabled = process.env.MODEL_AS_TOOL_LIVE === '1';
-const baseUrl = process.env.MODEL_AS_TOOL_LIVE_BASE_URL ?? 'http://127.0.0.1:3425';
-const modelName = process.env.MODEL_AS_TOOL_LIVE_MODEL ?? 'group/gpt-6-luna';
+const baseUrl = process.env.MODEL_AS_TOOL_LIVE_BASE_URL;
+const modelName = process.env.MODEL_AS_TOOL_LIVE_MODEL;
 
 function config(): AppConfig {
+  if (!baseUrl || !modelName) throw new Error('Set MODEL_AS_TOOL_LIVE_BASE_URL and MODEL_AS_TOOL_LIVE_MODEL for the live test');
   const provider: ProviderConfig = {
     type: 'openai',
     baseUrl,
@@ -58,7 +59,7 @@ function config(): AppConfig {
   };
 }
 
-describe.skipIf(!enabled)('live Magpie MCP integration', () => {
+describe.skipIf(!enabled)('live OpenAI-compatible MCP integration', () => {
   let client: Client | undefined;
   let server: ReturnType<typeof createMcpServer> | undefined;
 

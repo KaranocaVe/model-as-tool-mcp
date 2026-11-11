@@ -1,5 +1,5 @@
 {
-  "model": "magpie/local",
+  "model": "local/model",
   "messages": [
     { "role": "user", "content": "Rewrite this sentence in plain English." }
   ],

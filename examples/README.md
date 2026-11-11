@@ -2,12 +2,12 @@
 
 `config.json` is a complete configuration with four provider entries:
 
-- `magpie-local` uses the OpenAI-compatible adapter against `http://127.0.0.1:8000/v1` and is the local development example. In the complete `config.json`, its `apiKeyEnv` is `MAGPIE_API_KEY`; set that variable before invoking it, or use `magpie-local.json` for an unauthenticated endpoint.
+- `local-gateway` uses the OpenAI-compatible adapter against `http://127.0.0.1:8000/v1` as a placeholder for any compatible gateway. In the complete `config.json`, its `apiKeyEnv` is `GATEWAY_API_KEY`; set that variable before invoking it, or use `local-gateway.json` for an unauthenticated endpoint. Replace `your-model-name` with a model available at the endpoint.
 - `openai-main` uses the OpenAI-compatible adapter against OpenAI's API.
 - `anthropic-main` uses the native Anthropic adapter.
 - `gemini-main` uses the native Gemini adapter.
 
-`magpie-local.json` is a minimal local-only configuration for an unauthenticated endpoint. If the endpoint requires authentication, add `"apiKeyEnv": "MAGPIE_API_KEY"` to its provider entry and set that environment variable; the provider adapter then requires the variable to be present.
+`local-gateway.json` is a minimal local-only configuration for an unauthenticated endpoint. If the endpoint requires authentication, add `"apiKeyEnv": "GATEWAY_API_KEY"` to its provider entry and set that environment variable; the provider adapter then requires the variable to be present.
 
 Start stdio after building:
 
